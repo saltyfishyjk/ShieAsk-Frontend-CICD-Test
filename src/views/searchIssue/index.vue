@@ -10,6 +10,7 @@
             <PostIssue
                 v-show="dialogVisible"
                 :dialogVisible="dialogVisible"
+                :editMode="false"
                 @closeDialogEvent="closeDialog" />
         </div>
         <div class="search-bar">
@@ -83,7 +84,7 @@ import {Message} from 'element-ui'
 import {search_issue} from '@/api/issue'
 import {get_all_tags} from '@/api/tag'
 import {get_all_subjects, get_subject_all_chapters} from '@/api/subject'
-import {getToken} from '@/utils/auth'
+import {getToken, getRole} from '@/utils/auth'
 
 export default {
     name: "Search",
@@ -98,13 +99,14 @@ export default {
     data() {
         return {
             dialogVisible: false,
-            user_type: 0,
+            user_type: getRole(),
             search_keyword: '',
             search_tags: [],
             search_state: null,
             search_subject: null,
             search_chapter: null,
             sort_order: null,
+            year_id: 2, // alpha 阶段先用固定的year_id, beta
             all_tags: [
                 {
                     tag_id: 1,
@@ -364,24 +366,30 @@ export default {
             })
         },
         initChapters() {
-          get_all_subjects(getToken()).then(response => {
-            console.log('获取科目成功')
-            this.all_subjects = response.data['subject_list']
+          get_all_subjects(getToken(), this.year_id).then(response => {
+            console.log(response)
+            // why should JSON? see https://blog.csdn.net/weixin_46331416/article/details/123262798
+            this.all_subjects = JSON.parse(JSON.stringify(response.data['subject_list']));
+            // this.all_subjects = response.data['subject_list']
+            let i = 0;
+            for (i = 0; i < this.all_subjects.length; i++) {
+              // Warning！in each loop, for only calls api, not wait the response but direct go for next loop,
+              // so we should store var i in case of having wrong value in response handling code
+              let tmpI = i;
+              get_subject_all_chapters(getToken(), this.all_subjects[tmpI].subject_id).then(
+                response => {
+                  this.all_chapters[this.all_subjects[tmpI].subject_id] = response.data['chapter_list']
+                }
+              ).catch(error => {
+                console.log('获取章节失败')
+                console.log(error)
+              })
+            }
+            console.log('获取科目章节成功')
           }).catch(error => {
             console.log('获取科目失败')
             console.log(error)
           })
-          let i = 0;
-          for (i = 0; i < this.all_subjects.length; i++) {
-            get_subject_all_chapters(getToken(), this.all_subjects[i].subject_id).then(
-              response => {
-                this.all_chapters[this.all_subjects[i].subject_id] = response.data['chapter_list']
-              }
-            ).catch(error => {
-              console.log('获取章节失败')
-              console.log(error)
-            })
-          }
         },
         getIssues() {
             // TODO: get issues and issue_count
@@ -438,7 +446,7 @@ export default {
     margin-bottom: 20px;
     padding: 16px 24px 16px 24px;
     border: solid;
-    border-width: 3px;
+    border-width: 1px;
     border-color: #76a8dd;
     border-radius: 1.2ch;
 }
@@ -484,7 +492,7 @@ export default {
     border: solid;
     border-color: #76a8dd;
     border-radius: 1.2ch;
-    border-width: 3px;
+    border-width: 1px;
     margin-left: 10%;
     margin-top: 30px;
 }
