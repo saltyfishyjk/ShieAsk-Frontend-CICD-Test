@@ -4,7 +4,8 @@ COPY . .
 
 RUN npm install -g npm@9.6.4 \
     && npm install \ 
-    && npm run build:prod
+    && npm run build:prod \ 
+    && cd /usr/share/nginx/html ; mkdir pic
 
 FROM nginx
 RUN mkdir /app
