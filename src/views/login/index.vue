@@ -15,9 +15,10 @@
             <div class="title-container">
               <el-row type="flex" style="display: flex;align-items: center">
                 <el-col :span="4">
-                  <img src="http://shieask.com/pic/1.png" style="vertical-align:middle;max-height: 160px;max-width: 80px;">
+                  <img src="http://shieask.com/pic/1.png"
+                       style="vertical-align:middle;max-height: 160px;max-width: 80px;">
                 </el-col>
-                <el-col :span="16" >
+                <el-col :span="16">
                   <h2 class="title">士&nbsp;问</h2>
                   <h2 class="title" style="margin-left: 50px;">士&nbsp;答</h2>
                 </el-col>
@@ -70,9 +71,9 @@
                     <span class="svg-container">
                       <svg-icon icon-class="lock"/>
                     </span>
-                    <el-input
-                      placeholder="输入验证码"
-                      v-model="code"/>
+                  <el-input
+                    placeholder="输入验证码"
+                    v-model="code"/>
                 </el-form-item>
               </el-col>
               <el-col :span="10">
@@ -245,8 +246,8 @@ export default {
       console.log(this.identifyCode, this.code);
       if (this.identifyCode.toLowerCase() !== this.code.toLowerCase()) {
         Message({
-            message: '验证码错误',
-            type: 'error',
+          message: '验证码错误',
+          type: 'error',
         })
         this.refreshCode();
         return;
@@ -266,11 +267,12 @@ export default {
           // TODO 在前后端对接阶段，将下面的注释取消，在 store/user 中的 login 中已经实现 api 的调用
           //如果后端支持权限，注释上面三行，取消下列代码的注释
           //派发一个action:user/login,带着用户名与密码的载荷
+
           this.$store.dispatch('user/login', this.loginForm)
             .then(() => {
               // 登录成功进行路由的跳转
               // console.log("we would login success")
-              this.$router.push({path: this.redirect || '/', query: this.otherQuery})
+              this.$router.push({name: 'Search', query: this.otherQuery})
               // loading效果结束
               this.loading = false
               this.$notify({
@@ -305,7 +307,7 @@ export default {
         return acc
       }, {})
     },
-    
+
     randomNum(min, max) {
       return Math.floor(Math.random() * (max - min) + min);
     },
@@ -441,7 +443,7 @@ $light_gray: #eee;
       margin: 0 auto 0 auto;
       text-align: center;
       font-weight: bold;
-      font-family: 华文中宋,serif;
+      font-family: 华文中宋, serif;
     }
   }
 

@@ -1,8 +1,8 @@
 <template>
     <div class="issue-item" @click="toIssueDetailView()">
         <div class="author">
-            <!-- 显示头像还没调，暂时都显示默认头像 -->
-            <el-avatar class="user_avatar" :src="require('../../../assets/images/anonymous.jpg')" :key="this.user_avatar" />
+            <el-avatar v-if="this.user_avatar !== null" class="user_avatar" :src="this.user_avatar" :key="this.user_avatar" />
+            <el-avatar v-else class="user_avatar" :src="require('../../../assets/images/anonymous.jpg')" />
             <div class="user_name">{{this.user_name}}</div>
         </div>
         <div class="previews">
@@ -14,30 +14,36 @@
             </div>
             <div class="content">{{this.abstract}}</div>
             <div class="subject-chapter">
-                <div class="square-tag">{{ this.subject }}</div>
-                <div class="square-tag">{{ this.chapter }}</div>
+            <el-row style="width: 100%">
+            <el-col :span="10">
+                <el-tag type="warning" class="square-tag">{{ this.subject }}</el-tag>
+            </el-col>
+            <el-col :span="10">
+                <el-tag type="warning" class="square-tag">{{ this.chapter }}</el-tag>
+            </el-col>
+            </el-row>
             </div>
         </div>
         <div class="tags">
             <li class="tag" v-for="tag in this.tags">{{tag}}</li>
         </div>
         <div class="interactions" v-if="this.user_type === 0">
-            <div class="issue_like_count">
+            <div class="like_count">
                 <v-icon left>
                     mdi-thumb-up-outline
                 </v-icon>
-                <span style="margin: 0px 0px 4px 5px">{{this.issue_like_count}}</span>
+                <span style="margin: 0px 0px 4px 5px">{{this.like_count}}</span>
             </div>
-            <div class="issue_comment_count">
+            <div class="follow_count">
                 <v-icon left>
-                    mdi-message-text-outline
+                    mdi-heart-outline
                 </v-icon>
-                <span style="margin: 0px 0px 4px 5px">{{this.issue_comment_count}}</span>
+                <span style="margin: 0px 0px 4px 5px">{{this.follow_count}}</span>
             </div>
         </div>
-        <div class="interactions" v-if="this.user_type === 1">
-            <el-button type="warning" style="issue-button" @click.stop="answerIssue">认领回答</el-button>
-            <el-button type="warning" style="issue-button" @click.stop="verifyIssue">认领复审</el-button>
+        <div class="interactions" >
+            <el-button type="warning" v-if="this.status_trans_permit[0] === 1" style="issue-button" @click.stop="answerIssue">认领回答</el-button>
+            <el-button type="warning" v-if="this.status_trans_permit[4] === 1" style="issue-button" @click.stop="verifyIssue">认领复审</el-button>
         </div>
     </div>
 </template>
@@ -90,13 +96,17 @@ export default {
             type: String,
             default: '2022-09-01 00:00'
         },
-        issue_like_count: {
+        like_count: {
             type: Number,
             default: 0
         },
-        issue_comment_count: {
+        follow_count: {
             type: Number,
             default: 0
+        },
+        status_trans_permit: {
+            type: Array,
+            default: [0, 0, 0, 0, 0 ,0, 0]
         }
     },
     data() {
@@ -107,19 +117,14 @@ export default {
     },
     methods: {
         /* async */ toIssueDetailView() {
-            // TODO: call backend API
             //Test issueInfoDetail
-            this.$router.push({name: 'issueInfoDetail', params: {issue_id: "3"}})
-            //
-            Message({
-                message: '点击问题',
-                type: 'warning',
-            })
+            this.$router.push({name: 'issueInfoDetail', params: {issue_id: this.id}})
             console.log("to issue detail");
         },
         answerIssue() {
             adopt_issue(getToken(), this.id).then(response => {
                 console.log(response)
+                this.$emit('refreshEvent');
                 Message({
                   message: '回答问题',
                   type: 'success',
@@ -132,6 +137,7 @@ export default {
         verifyIssue() {
             review_issue(getToken(), this.id).then(response => {
               console.log(response)
+              this.$emit('refreshEvent');
               Message({
                 message: '复审问题',
                 type: 'success',
@@ -172,6 +178,7 @@ export default {
     padding-top: 13px;
     padding-left: 4%;
     width: 15%;
+    min-width: 80px;
 }
 
 .previews {
@@ -194,13 +201,14 @@ export default {
     display: flex;
     flex-direction: column;
     padding-top: 10px;
-    padding-left: 2%;
+    margin-left: 2%;
     width: 15%;
 }
 
 .user_avatar {
     width: 80px;
     height: 80px;
+    align-self: center;
     margin-top: 4%;
 }
 
@@ -211,20 +219,31 @@ export default {
     font-weight: 400;
     font-size: 18px;
     letter-spacing: 0.8px;
+    text-align: center;
 }
 
 .title {
     font-weight: 600;
     font-size: 22px;
     letter-spacing: 1.5px;
+    display: inline-block;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .content {
     padding-top: 12px;
-    color: #888888;
+    color: #666666;
     font-weight: 400;
     font-size: 14px;
     letter-spacing: 1px;
+    display: inline-block;
+    max-width: 400px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .subject-chapter {
@@ -234,20 +253,13 @@ export default {
 }
 
 .square-tag {
-    width: 80px;
     height: 28px;
     margin-right: 20%;
-    padding-top: 3px;
-    padding-bottom: 3px;
-
-    border-style: none;
-    border-color: #ddb666;
-    background-color: #ddb666;
-    border-radius: 0.6ch;
-
-    color: #ffffff;
-    font-weight: 500;
-    text-align: center;
+    display: inline-block;
+    max-width: 90px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tag {
@@ -276,16 +288,20 @@ export default {
     font-weight: 400;
     font-size: 14px;
     letter-spacing: 0.4px;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.issue_like_count {
+.like_count {
     display:flex;
     padding-top: 5px;
     font-weight: 500;
     font-size: 22px;
 }
 
-.issue_comment_count {
+.follow_count {
     display:flex;
 
     padding-top: 30px;
@@ -298,6 +314,9 @@ export default {
     margin-bottom: 10%;
     margin-left: 0px;
     margin-right: 10%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .el-button--medium {
