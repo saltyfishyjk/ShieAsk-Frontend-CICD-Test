@@ -8,7 +8,9 @@
         <div class="previews">
             <div style="display: flex;">
                 <div class="title">{{this.title}}</div>
-                <div class="time">{{this.date}}</div>
+                <div class="time">
+                    {{this.created_at.slice(0, 10)}} {{this.created_at.slice(11, 16)}}
+                </div>
             </div>
             <div class="content">{{this.abstract}}</div>
             <div class="subject-chapter">
@@ -21,11 +23,15 @@
         </div>
         <div class="interactions" v-if="this.user_type === 0">
             <div class="issue_like_count">
-                <i style="margin-top: 5px" class="el-icon-star-on"></i>
+                <v-icon left>
+                    mdi-thumb-up-outline
+                </v-icon>
                 <span style="margin: 0px 0px 4px 5px">{{this.issue_like_count}}</span>
             </div>
             <div class="issue_comment_count">
-                <i style="margin-top: 5px" class="el-icon-chat-line-square"></i>
+                <v-icon left>
+                    mdi-message-text-outline
+                </v-icon>
                 <span style="margin: 0px 0px 4px 5px">{{this.issue_comment_count}}</span>
             </div>
         </div>
@@ -38,6 +44,8 @@
 
 <script>
 import {Message} from 'element-ui'
+import {adopt_issue, review_issue} from '@/api/issue'
+import {getToken, getRole} from '@/utils/auth'
 
 export default {
     name: 'IssueItem',
@@ -47,8 +55,8 @@ export default {
             default: 0
         },
         id: {
-            type: String,
-            default: "issue998244353"
+            type: Number,
+            default: 998244353
         },
         title: {
             type: String,
@@ -78,9 +86,9 @@ export default {
             type: String,
             default: '未定章节'
         },
-        date: {
+        created_at: {
             type: String,
-            default: '2022-09-01'
+            default: '2022-09-01 00:00'
         },
         issue_like_count: {
             type: Number,
@@ -110,16 +118,28 @@ export default {
             console.log("to issue detail");
         },
         answerIssue() {
-            Message({
-                message: '回答问题',
-                type: 'success',
+            adopt_issue(getToken(), this.id).then(response => {
+                console.log(response)
+                Message({
+                  message: '回答问题',
+                  type: 'success',
+                })
+            }).catch(error => {
+                console.log(error)
             })
+
         },
         verifyIssue() {
-            Message({
+            review_issue(getToken(), this.id).then(response => {
+              console.log(response)
+              Message({
                 message: '复审问题',
                 type: 'success',
+              })
+            }).catch(error => {
+              console.log(error)
             })
+
         }
     }
 }
@@ -254,8 +274,8 @@ export default {
     margin-right: 3%;
     color: #444444;
     font-weight: 400;
-    font-size: 16px;
-    letter-spacing: 0.8px;
+    font-size: 14px;
+    letter-spacing: 0.4px;
 }
 
 .issue_like_count {

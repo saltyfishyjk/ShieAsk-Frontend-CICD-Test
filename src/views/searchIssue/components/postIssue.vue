@@ -13,8 +13,9 @@
         <el-col :span="24">
           <markdown-editor
             v-model="content"
-            height="350px"
+            height="500px"
             lang="zh"
+            :hooks="this.hooks"
           />
         </el-col>
       </el-form-item>
@@ -65,6 +66,7 @@ import {
 } from '@/api/issue'
 import {get_all_subjects, get_subject_all_chapters} from '@/api/subject'
 import {getToken} from '@/utils/auth'
+import {upload_public} from "@/api/upload";
 
 export default {
   name: 'PostIssueDialog',
@@ -84,7 +86,7 @@ export default {
   },
   data() {
     return {
-      year_id: 2,
+      year_id: 1,
       all_subjects: [
         {
           subject_id: 1,
@@ -206,6 +208,26 @@ export default {
         anonymous: null,
       },
       content: '点此输入问题...',
+      hooks:{
+        addImageBlobHook: async (blob, callback) => {
+          let jwt = this.$store.state.user.token
+          const formData = new FormData();
+          formData.append('file', blob);
+          upload_public(formData).then(response=>{
+            if (response.data) {
+              callback(response.data.url);
+            }
+          }).catch(err=>{
+            this.$notify({
+              title: '上传图片失败',
+              message: '上传图片信息失败',
+              type: 'warning',
+              duration: 2000
+            })
+          })
+
+        },
+      }
     };
   },
   setup() {
@@ -243,8 +265,8 @@ export default {
       // console.log(parseInt(this.issue.anonymous))
       commit_issue(getToken(), this.issue.chapter, this.issue.title,
         this.content, parseInt(this.issue.anonymous)).then(response => {
+          console.log(response)
         this.$emit('closeDialogEvent');
-        console.log('close!!!!');
         Message({
           message: '发布问题成功',
           type: 'success'
@@ -308,7 +330,7 @@ export default {
         this.issue.chapter,
         this.issue.title,
         this.content,
-        this.issue.anonymous).catch(response => {
+        this.issue.anonymous).then(response => {
         this.$notify({
           title: '编辑成功',
           message: '编辑issue信息成功',

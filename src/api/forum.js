@@ -6,7 +6,7 @@ export function get_issue_all_comments(
   issue_id //: number
 ) {
   return request({
-    url: '/subject/',
+    url: '/issue/comments',
     method: 'post',
     data: {
       jwt: jwt,
@@ -20,8 +20,8 @@ export function delete_comment(
   comment_id //: number
 ) {
   return request({
-    url: '/issue/comment/',
-    method: 'post',
+    url: '/issue/comment',
+    method: 'delete',
     data: {
       jwt: jwt,
       comment_id: comment_id
@@ -35,7 +35,7 @@ export function update_comment(
   content //: string
 ) {
   return request({
-    url: '/issue/comment/update/',
+    url: '/issue/comment/update',
     method: 'post',
     data: {
       jwt: jwt,
@@ -51,7 +51,7 @@ export function create_comment(
   content //: string
 ) {
   return request({
-    url: '/issue/comment/create/',
+    url: '/issue/comment/create',
     method: 'post',
     data: {
       jwt: jwt,
